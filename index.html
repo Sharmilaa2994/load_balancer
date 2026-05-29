@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Topper AI Load Balancer</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+body{background:#0f172a;color:white;text-align:center;font-family:Arial;}
+button{margin:8px;padding:10px;border:none;border-radius:6px;background:#38bdf8;}
+.card{display:inline-block;background:#1e293b;padding:15px;margin:10px;border-radius:10px;}
+</style>
+</head>
+<body>
+
+<h2>Federated Neuro-Swarm Load Balancer</h2>
+
+<button onclick="start()">Start</button>
+<button onclick="increase()">Increase Traffic</button>
+<button onclick="setMode('AI')">AI Mode</button>
+<button onclick="setMode('NORMAL')">Normal Mode</button>
+
+<h3 id="mode"></h3>
+
+<div id="cards"></div>
+<canvas id="chart"></canvas>
+
+<script>
+let chart;
+
+function start(){fetch('/start')}
+function increase(){fetch('/increase')}
+function setMode(m){fetch('/mode/'+m)}
+
+function update(){
+fetch('/data').then(r=>r.json()).then(d=>{
+document.getElementById("mode").innerText="Mode: "+d.mode
+
+let cards=""
+d.loads.forEach((l,i)=>cards+=`<div class="card">Server ${i}<br>${l}%</div>`)
+document.getElementById("cards").innerHTML=cards
+
+if(!chart){
+chart=new Chart(document.getElementById("chart"),{
+type:'line',
+data:{labels:[],datasets:d.history.map((_,i)=>({label:'S'+i,data:[]}))}
+})
+}
+
+chart.data.labels.push("")
+d.history.forEach((h,i)=>chart.data.datasets[i].data=h)
+chart.update()
+})
+}
+
+setInterval(update,1000)
+</script>
+
+</body>
+</html>
